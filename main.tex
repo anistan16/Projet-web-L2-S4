@@ -1,0 +1,509 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{textcomp}
+\geometry{margin=2.5cm}
+
+% Style pour le code
+\definecolor{codebg}{rgb}{0.97,0.97,0.97}
+\definecolor{codecomment}{rgb}{0.0,0.5,0.0}
+\definecolor{codekw}{rgb}{0.0,0.0,0.7}
+\definecolor{codestr}{rgb}{0.6,0.1,0.1}
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{codebg},
+    keywordstyle=\color{codekw}\bfseries,
+    commentstyle=\color{codecomment},
+    stringstyle=\color{codestr},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+    showstringspaces=false
+}
+
+\title{
+    \vspace{-1cm}
+    {\LARGE\bfseries Rapport de Projet}\\[0.2cm]
+    {\large Mini Site E-commerce de Pizzeria}\\[0.1cm]
+    {\Large\textbf{\color{red!70!black}AniPriZZA}}
+}
+\author{Judeken \& Peter \\ L2 Informatique}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Huge\bfseries Rapport de Projet\par}
+\vspace{0.5cm}
+{\LARGE Mini Site E-commerce de Pizzeria\par}
+\vspace{0.3cm}
+{\Huge\color{red!70!black}\bfseries AniPriZZA\par}
+\vspace{1cm}
+\rule{\linewidth}{0.5mm}
+\vspace{0.5cm}
+
+\begin{tabular}{ll}
+\textbf{Auteurs} & Judeken \& Peter canisious linton \\
+\textbf{Niveau} & L2 Informatique \\
+\textbf{Date} & 18/04/2026 \\
+\textbf{Technologies} & PHP, MySQL, HTML/CSS/JavaScript \\
+\end{tabular}
+
+\vspace{0.5cm}
+\rule{\linewidth}{0.5mm}
+
+\vspace{1cm}
+\begin{abstract}
+Ce rapport présente la conception et la réalisation du projet \textbf{AniPriZZA}, un mini site e-commerce de pizzeria napolitaine développé en HTML/Css/Java/PHP/MySQL. Le système offre un catalogue de pizzas dynamique, un panier JavaScript, un système d'authentification sécurisé, un programme de fidélité, et une interface d'administration complète.
+\end{abstract}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+%--------------------------------------------------
+\section{Introduction}
+
+Dans ce projet, nous avons réalisé \textbf{AniPriZZA}, un mini site e-commerce de pizzeria napolitaine permettant de commander des pizzas en ligne.
+
+L'objectif est de développer un site web dynamique complet en utilisant :
+\begin{itemize}
+    \item \textbf{PHP} --- logique serveur (sessions, traitement des formulaires, CRUD complet)
+    \item \textbf{MySQL} --- persistance des données (pizzas, utilisateurs, commandes)
+    \item \textbf{HTML / CSS} --- structure et design de l'interface (dark theme premium)
+    \item \textbf{JavaScript} --- interactions client (panier dynamique, filtres, animations, LocalStorage)
+\end{itemize}
+
+Le projet intègre une architecture en couches avec séparation des responsabilités entre la présentation (HTML/CSS/JS), la logique métier (PHP) et les données (MySQL), et distingue trois niveaux d'accès : visiteur, client authentifié et administrateur.
+
+%--------------------------------------------------
+\section{Présentation du site}
+
+\textbf{AniPriZZA} est une pizzeria napolitaine artisanale fondée en 2022. Le site propose une expérience e-commerce complète avec les pages suivantes :
+
+\begin{itemize}
+    \item \textbf{index.php} --- Page d'accueil : hero section (four à bois 450°C, cuisson 90s), pizzas phares statiques, caractéristiques de la maison
+    \item \textbf{produits.php} --- Catalogue filtrable par catégorie (Classique, Spicy, Veggie, Premium), alimenté depuis la base de données
+    \item \textbf{panier.php} --- Gestion dynamique du panier (JS + LocalStorage), validation de commande, système de points fidélité
+    \item \textbf{login.php} --- Inscription, connexion, gestion du profil (téléphone, adresse), suppression de compte
+    \item \textbf{contact.php} --- Formulaire de contact avec informations de la pizzeria
+    \item \textbf{admin\_pizzas.php} --- Back-office : gestion complète du menu (CRUD + toggle disponibilité)
+    \item \textbf{admin\_users.php} --- Back-office : gestion des comptes utilisateurs
+\end{itemize}
+
+\subsection{Acteurs du système}
+
+Le système distingue trois types d'acteurs :
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|>{\bfseries}p{2.5cm}|p{10cm}|}
+\hline
+Acteur & Description et droits \\
+\hline
+Visiteur & Consulter l'accueil, parcourir le catalogue, envoyer un message de contact. Pas d'authentification requise. \\
+\hline
+Client & Hérite des droits visiteur. Peut s'inscrire, se connecter, gérer son panier, passer des commandes, utiliser ses points fidélité, et gérer son profil. \\
+\hline
+Admin & Accès complet au back-office : CRUD sur les pizzas, toggle de disponibilité, gestion des comptes clients (ajout, suppression). \\
+\hline
+\end{tabular}
+\end{center}
+
+%--------------------------------------------------
+\section{Fonctionnalités}
+
+\subsection{Fonctionnalités côté client}
+
+\begin{itemize}
+    \item Affichage du catalogue de pizzas depuis la base de données (\texttt{SELECT} avec filtre \texttt{disponible = 1})
+    \item Filtrage dynamique du catalogue par catégorie (JavaScript côté client, sans rechargement)
+    \item Gestion du panier : ajout, modification de quantité, suppression (LocalStorage + JavaScript)
+    \item Inscription avec 50 points de bienvenue offerts automatiquement
+    \item Connexion sécurisée avec hash bcrypt (\texttt{password\_hash()} / \texttt{password\_verify()})
+    \item Validation de commande avec calcul du total et des points gagnés (+2 pts/pizza)
+    \item Utilisation des points de fidélité (100 pts = remise de 12,90\texteuro{} sur la commande)
+    \item Mise à jour du profil utilisateur (téléphone, adresse de livraison)
+    \item Suppression définitive du compte avec nettoyage de session
+\end{itemize}
+
+\subsection{Fonctionnalités côté administrateur}
+
+\begin{itemize}
+    \item Ajout d'une pizza (\texttt{INSERT} : nom, ingrédients, prix, image URL, catégorie)
+    \item Modification d'une pizza (\texttt{UPDATE} via formulaire inline dans le tableau)
+    \item Suppression d'une pizza (\texttt{DELETE} avec dialogue de confirmation)
+    \item Activation/désactivation d'une pizza (toggle \texttt{disponible} 0/1) sans suppression
+    \item Création manuelle d'un compte utilisateur (client ou administrateur)
+    \item Suppression d'un compte utilisateur (avec protection anti-auto-suppression)
+    \item Visualisation de tous les inscrits avec leurs points fidélité et leur rôle
+\end{itemize}
+
+%--------------------------------------------------
+\section{Conception}
+
+\subsection{Diagramme de cas d'utilisation}
+
+Le diagramme ci-dessous représente les interactions entre les trois acteurs du système et les fonctionnalités disponibles.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{usecase.png}
+    \caption{Diagramme de cas d'utilisation --- AniPriZZA}
+    \label{fig:usecase}
+\end{figure}
+
+%--------------------------------------------------
+\subsection{Diagramme de classes}
+
+Le modèle de données du projet repose sur trois tables principales : \textbf{pizzas}, \textbf{users} et \textbf{messages}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{classe.png}
+    \caption{Diagramme de classes --- AniPriZZA}
+    \label{fig:class}
+\end{figure}
+
+%--------------------------------------------------
+\subsection{Diagramme de séquence --- Inscription d'un client}
+
+Le scénario d'inscription illustre la validation des données et la création du compte.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{sequence_inscription.png}
+    \caption{Diagramme de séquence --- Inscription d'un client}
+    \label{fig:seq_inscription}
+\end{figure}
+
+\subsection{Diagramme de séquence --- Passage d'une commande}
+
+Le scénario de commande illustre la logique de fidélité et la mise à jour des points.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{sequence_commande.png}
+    \caption{Diagramme de séquence --- Passage d'une commande}
+    \label{fig:seq_commande}
+\end{figure}
+
+%--------------------------------------------------
+\section{Base de données}
+
+Nous avons créé une base de données appelée \textbf{aniprizza} contenant trois tables principales.
+
+\subsection{Table pizzas}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Champ} & \textbf{Type} & \textbf{Description} \\
+\hline
+id & INT AUTO\_INCREMENT PK & Identifiant unique \\
+nom & VARCHAR(100) NOT NULL & Nom de la pizza \\
+ingredients & TEXT NOT NULL & Liste des ingrédients \\
+prix & DECIMAL(5,2) NOT NULL & Prix en euros \\
+image\_url & TEXT & URL de l'image (Unsplash) \\
+categorie & VARCHAR(50) DEFAULT 'classique' & Catégorie (classique/spicy/veggie/premium) \\
+disponible & TINYINT(1) DEFAULT 1 & Disponibilité (0=masqué, 1=affiché) \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Table users}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Champ} & \textbf{Type} & \textbf{Description} \\
+\hline
+id & INT AUTO\_INCREMENT PK & Identifiant unique \\
+nom & VARCHAR(100) NOT NULL & Nom ou pseudo \\
+email & VARCHAR(150) NOT NULL UNIQUE & Adresse e-mail (clé unique) \\
+password & VARCHAR(255) NOT NULL & Mot de passe hashé (bcrypt) \\
+role & ENUM('user','admin') & Rôle (client ou administrateur) \\
+points\_fidelite & INT DEFAULT 0 & Points cumulés (50 à l'inscription) \\
+telephone & VARCHAR(20) & Téléphone (optionnel) \\
+adresse & TEXT & Adresse de livraison (optionnel) \\
+created\_at & TIMESTAMP DEFAULT NOW() & Date d'inscription automatique \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Table messages}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Champ} & \textbf{Type} & \textbf{Description} \\
+\hline
+id & INT AUTO\_INCREMENT PK & Identifiant unique \\
+nom & VARCHAR(100) NOT NULL & Nom de l'expéditeur \\
+email & VARCHAR(150) NOT NULL & Email de l'expéditeur \\
+sujet & VARCHAR(255) NOT NULL & Sujet du message \\
+message & TEXT NOT NULL & Contenu du message \\
+created\_at & TIMESTAMP DEFAULT NOW() & Date d'envoi automatique \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Script SQL de création}
+
+\begin{lstlisting}[language=SQL, caption=Script de création de la base de données AniPriZZA]
+CREATE DATABASE IF NOT EXISTS aniprizza CHARACTER SET utf8mb4;
+USE aniprizza;
+
+CREATE TABLE pizzas (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    nom         VARCHAR(100)         NOT NULL,
+    ingredients TEXT                 NOT NULL,
+    prix        DECIMAL(5,2)         NOT NULL,
+    image_url   TEXT,
+    categorie   VARCHAR(50)          DEFAULT 'classique',
+    disponible  TINYINT(1)           DEFAULT 1
+);
+
+CREATE TABLE users (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    nom              VARCHAR(100)     NOT NULL,
+    email            VARCHAR(150)     NOT NULL UNIQUE,
+    password         VARCHAR(255)     NOT NULL,
+    role             ENUM('user','admin') DEFAULT 'user',
+    points_fidelite  INT              DEFAULT 0,
+    telephone        VARCHAR(20),
+    adresse          TEXT,
+    created_at       TIMESTAMP        DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE messages (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    nom        VARCHAR(100)     NOT NULL,
+    email      VARCHAR(150)     NOT NULL,
+    sujet      VARCHAR(255)     NOT NULL,
+    message    TEXT             NOT NULL,
+    created_at TIMESTAMP        DEFAULT CURRENT_TIMESTAMP
+);
+
+\end{lstlisting}
+
+%--------------------------------------------------
+\section{Réalisation}
+
+\subsection{Structure du projet}
+
+\begin{verbatim}
+/AniPriZZA/
+|-- config.php           → Connexion BDD (MySQLi) + démarrage session
+|-- index.php            → Page d'accueil (statique + dynamique)
+|-- css/
+|   \-- style.css        → Design dark premium (variables CSS, responsive)
+|-- js/
+|   \-- script.js        → Panier (LocalStorage), filtres, animations IntersectionObserver
+\-- pages/
+    |-- produits.php     → Catalogue dynamique (SELECT BDD, filtres JS)
+    |-- panier.php       → Validation commande + logique fidélité (PHP)
+    |-- login.php        → Inscription / Connexion / Profil / Suppression compte
+    |-- contact.php      → Formulaire de contact (INSERT messages)
+    |-- admin_pizzas.php → Back-office : CRUD pizzas + toggle disponibilité
+    \-- admin_users.php  → Back-office : gestion utilisateurs (protégé admin)
+\end{verbatim}
+
+\subsection{Connexion à la base de données}
+
+\begin{lstlisting}[language=PHP, caption=config.php — Connexion centralisée]
+<?php
+$host     = "localhost";
+$user     = "root";
+$password = "";          // XAMPP : vide par defaut
+$dbname   = "aniprizza";
+
+$conn = new mysqli($host, $user, $password, $dbname);
+$conn->set_charset("utf8mb4");  // Support des emojis et accents
+
+if ($conn->connect_error) {
+    die(json_encode([
+        "error"   => true,
+        "message" => "Connexion echouee : " . $conn->connect_error
+    ]));
+}
+
+// Demarrage session centralisee (evite les appels multiples)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
+\end{lstlisting}
+
+\subsection{Exemple : Ajout d'une pizza (admin)}
+
+\begin{lstlisting}[language=PHP, caption=admin\_pizzas.php — Ajout d'une pizza (extrait)]
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
+    $nom  = $conn->real_escape_string(trim($_POST['nom']));
+    $ing  = $conn->real_escape_string(trim($_POST['ing']));
+    $prix = (float)$_POST['prix'];
+    $img  = $conn->real_escape_string(trim($_POST['img']));
+    $cat  = $conn->real_escape_string(trim($_POST['categorie']));
+
+    if ($nom && $ing && $prix > 0) {
+        $conn->query("INSERT INTO pizzas 
+                     (nom, ingredients, prix, image_url, categorie)
+                     VALUES ('$nom','$ing',$prix,'$img','$cat')");
+        $flash = "\"$nom\" ajoutee au menu !";
+    }
+}
+\end{lstlisting}
+
+\subsection{Système de fidélité}
+
+Le programme de fidélité est géré entièrement côté serveur dans \texttt{panier.php} :
+
+\begin{lstlisting}[language=PHP, caption=panier.php — Logique de fidélité (extrait)]
+$uid = (int)$_SESSION['user_id'];
+$total_qty   = (int)$_POST['total_qty'];
+$total_price = (float)$_POST['total_price'];
+
+// Recuperation des points actuels
+$user_query = $conn->query(
+    "SELECT points_fidelite FROM users WHERE id=$uid"
+);
+$points  = (int)$user_query->fetch_assoc()['points_fidelite'];
+$discount = 0;
+
+// Utilisation des points (100 pts = -12.90 euro)
+if (isset($_POST['use_points']) && $points >= 100) {
+    $discount = 12.90;
+    $conn->query(
+        "UPDATE users SET points_fidelite = points_fidelite - 100 
+         WHERE id=$uid"
+    );
+}
+
+// Calcul du total final
+$final_price = max(0, $total_price - $discount);
+
+// Credit des nouveaux points (+2 par pizza)
+$points_earned = $total_qty * 2;
+$conn->query(
+    "UPDATE users SET points_fidelite = points_fidelite + $points_earned 
+     WHERE id=$uid"
+);
+\end{lstlisting}
+
+\subsection{Sécurité}
+
+\begin{itemize}
+    \item \textbf{Hashage des mots de passe} : algorithme bcrypt via \texttt{password\_hash(PASSWORD\_BCRYPT)} --- résistant aux attaques par table arc-en-ciel
+    \item \textbf{Échappement des entrées} : utilisation systématique de \texttt{real\_escape\_string()} pour toutes les variables insérées en SQL
+    \item \textbf{Protection des routes admin} : vérification de \texttt{\$\_SESSION['user\_role'] === 'admin'} avant tout accès au back-office, avec redirection vers login.php
+    \item \textbf{Protection anti-auto-suppression} : vérification que l'ID à supprimer est différent de l'ID de la session admin courante
+    \item \textbf{Cast des identifiants} : tous les IDs provenant de l'URL ou du formulaire sont castés en \texttt{int} pour prévenir les injections
+\end{itemize}
+
+%--------------------------------------------------
+\section{Interface du site}
+
+\subsection{Design}
+
+Le site adopte un design \textit{dark premium} inspiré des grandes pizzerias italiennes :
+
+\begin{itemize}
+    \item Fond sombre (\texttt{\#0f0f0f}) avec accents rouge-orangé (\texttt{\#e5641e}) et or (\texttt{\#c9a96e})
+    \item Typographie mixte : \textit{Cormorant Garamond} (display) + \textit{Inter} (corps de texte)
+    \item Variables CSS pour la cohérence des couleurs sur toutes les pages
+    \item Animations d'apparition (\texttt{slide-up}) déclenchées par \texttt{IntersectionObserver}
+    \item Design entièrement responsive avec grille CSS adaptative et hamburger menu mobile
+\end{itemize}
+
+\subsection{Pages principales}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|l|p{8.5cm}|}
+\hline
+\textbf{Page} & \textbf{Description} \\
+\hline
+Accueil & Hero section, stats (450°C, 90s, 100\% artisanal), 3 pizzas phares, section features \\
+La Carte & Grille de pizzas filtrables, boutons «Ajouter» au panier, badge catégorie coloré \\
+Panier & Récapitulatif dynamique, validation, case «utiliser mes points», message de confirmation \\
+Mon Compte & Formulaires inscription/connexion, tableau de bord client (points, coordonnées) \\
+Admin Pizzas & Tableau inventaire complet, formulaire d'ajout, boutons modification/suppression/toggle \\
+Admin Users & Liste des inscrits avec rôle, points, date; formulaire de création manuelle \\
+\hline
+\end{tabular}
+\end{center}
+
+%--------------------------------------------------
+\section{Difficultés rencontrées}
+
+Au cours du développement, nous avons rencontré plusieurs difficultés techniques et fonctionnelles :
+
+\begin{itemize}
+    \item \textbf{Gestion des sessions PHP} : assurer la cohérence de l'état de connexion entre toutes les pages, notamment pour l'affichage conditionnel des menus (espace client vs visiteur) et la protection des routes admin par redirection
+    
+    \item \textbf{Architecture du panier} : le choix entre un panier en LocalStorage (côté client, rapide et sans rechargement) et un panier en base de données (persistant, lié au compte) a été tranché en faveur du LocalStorage, avec validation des données côté serveur uniquement au moment du checkout
+    
+    \item \textbf{Sécurité des formulaires} : prévention des injections SQL via l'échappement systématique des entrées, la validation des types (cast explicite des IDs en entier), et la vérification des conditions d'accès
+    
+    \item \textbf{Toggle de disponibilité} : implémentation du switch on/off en CSS pur avec redirection PHP après mise à jour, en évitant l'usage d'un framework JavaScript lourd
+    
+    
+    \item \textbf{Calcul du système de fidélité} : gestion des cas limites (total inférieur à la réduction, protection contre les points négatifs, scénario où l'utilisateur n'est pas connecté au moment du checkout)
+\end{itemize}
+
+%--------------------------------------------------
+\section{Conclusion}
+
+Ce projet nous a permis de comprendre et d'appliquer :
+
+\begin{itemize}
+    \item La conception complète d'une application web (diagrammes UML : cas d'utilisation, classes, séquence)
+    \item Le développement full-stack d'un site e-commerce dynamique avec PHP et MySQL
+    \item Les opérations CRUD complètes sur plusieurs entités (pizzas et utilisateurs)
+    \item La gestion sécurisée des sessions et de l'authentification (bcrypt, vérification de rôle)
+    \item L'implémentation d'une logique métier complexe (système de points fidélité)
+    \item La séparation des responsabilités et la protection des ressources sensibles
+\end{itemize}
+
+\subsection{Améliorations possibles}
+
+\begin{itemize}
+    \item Historique des commandes persistant en base de données avec table \texttt{commandes} et \texttt{commande\_items}
+    \item Module d'upload d'images pour les pizzas (au lieu des URL externes Unsplash)
+    \item Suivi de commande en temps réel avec statuts (en préparation, en livraison, livrée)
+    \item Intégration d'un système de paiement sécurisé (Stripe, PayPal)
+    \item Système d'avis et de notation des pizzas (table \texttt{avis}, calcul moyenne)
+    \item Développement d'une API REST pour une application mobile (React Native, Flutter)
+
+%--------------------------------------------------
+\section{Bibliographie}
+
+\begin{itemize}
+    \item Les différents chapitres fournis en cours 
+    \item Documentation MySQL : \url{https://dev.mysql.com/doc/}
+    \item MDN Web Docs (HTML/CSS/JavaScript) : \url{https://developer.mozilla.org/fr/}
+    \item Cours de Conception d'Applications Web
+    \item Exemple de Conception Application Web --- Document fourni en cours
+    \item UML 2.5 --- Object Management Group : \url{https://www.omg.org/spec/UML/}
+\end{itemize}
+
+\end{document}
